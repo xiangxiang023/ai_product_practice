@@ -76,16 +76,16 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
   const selectedClothes = clothes.filter(c => selectedItemIds.includes(c.id));
 
   return (
-    <div className="fixed inset-0 bg-[#FFFBF5] z-50 flex flex-col p-6 animate-in slide-in-from-bottom duration-500 overflow-y-auto hide-scrollbar">
-      <header className="flex justify-between items-center mb-8 shrink-0">
-        <button onClick={onCancel} className="text-[#A79277] text-xs font-bold bg-white px-4 py-2 rounded-full border border-[#F2EBE3] active:scale-95">
+    <div className="fixed inset-0 bg-[#FFFBF5] z-50 flex flex-col p-5 animate-in slide-in-from-bottom duration-500 overflow-y-auto hide-scrollbar">
+      <header className="flex justify-between items-center mb-6 shrink-0">
+        <button onClick={onCancel} className="text-[#A79277] text-xs font-bold bg-white px-4 py-2 rounded-full border border-[#F2EBE3] active:scale-95 shadow-sm">
           返回
         </button>
         <div className="text-center">
           <h1 className="text-sm font-bold text-[#8D7B68] tracking-tight">
             {isEditing ? '记录此刻' : '穿搭回顾'}
           </h1>
-          <p className="text-[10px] text-[#C1B094] font-bold tracking-widest mt-0.5 uppercase">
+          <p className="text-[9px] text-[#C1B094] font-bold tracking-widest mt-0.5 uppercase">
             {targetDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} STYLE ARCHIVE
           </p>
         </div>
@@ -101,7 +101,7 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
           ) : (
             <button 
               onClick={() => setIsEditing(true)}
-              className="text-xs font-bold px-4 py-2 rounded-full bg-white text-[#8D7B68] border border-[#F2EBE3] active:scale-95"
+              className="text-xs font-bold px-4 py-2 rounded-full bg-white text-[#8D7B68] border border-[#F2EBE3] active:scale-95 shadow-sm"
             >
               编辑
             </button>
@@ -109,53 +109,53 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
         </div>
       </header>
 
-      <div className="flex-1 space-y-8 pb-10">
-        {/* Weather card - Improved for mobile */}
-        <section className="space-y-3">
+      <div className="flex-1 space-y-6 pb-6">
+        {/* Weather card - Reduced padding/spacing */}
+        <section className="space-y-2">
           <label className="text-[10px] font-bold text-[#C1B094] uppercase tracking-widest block ml-2">气象感应</label>
-          <div className="bg-white border border-[#F2EBE3] rounded-[2.5rem] p-6 warm-shadow space-y-6">
-            <div className="flex flex-col space-y-4">
+          <div className="bg-white border border-[#F2EBE3] rounded-[2rem] p-5 warm-shadow space-y-4">
+            <div className="flex flex-col space-y-3">
               {isEditing ? (
-                <div className="grid grid-cols-5 gap-2 bg-[#FFFBF5] p-1.5 rounded-[1.5rem] border border-[#F2EBE3]">
+                <div className="grid grid-cols-5 gap-1.5 bg-[#FFFBF5] p-1.5 rounded-[1.25rem] border border-[#F2EBE3]">
                   {weatherOptions.map(o => (
                     <button
                       key={o.label}
                       onClick={() => setCondition(o.label)}
-                      className={`flex flex-col items-center justify-center py-3 rounded-xl transition-all ${
+                      className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
                         condition === o.label 
                           ? 'bg-white shadow-sm text-[#8D7B68] scale-105' 
                           : 'text-[#C1B094] opacity-50 active:scale-90'
                       }`}
                     >
-                      <span className="text-xl mb-1">{o.icon}</span>
-                      <span className="text-[10px] font-bold">{o.label}</span>
+                      <span className="text-lg mb-0.5">{o.icon}</span>
+                      <span className="text-[9px] font-bold">{o.label}</span>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center space-x-3 bg-[#FFFBF5] px-4 py-3 rounded-2xl border border-[#F2EBE3] w-fit">
-                  <span className="text-2xl">{activeIcon}</span>
-                  <span className="text-sm font-bold text-[#4A3F35]">{condition}</span>
+                <div className="flex items-center space-x-3 bg-[#FFFBF5] px-4 py-2 rounded-2xl border border-[#F2EBE3] w-fit">
+                  <span className="text-xl">{activeIcon}</span>
+                  <span className="text-xs font-bold text-[#4A3F35]">{condition}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-1.5">
               <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-bold text-[#C1B094] uppercase tracking-wider">当前气温</span>
-                <span className="text-lg font-bold text-[#8D7B68]">{temp}°C</span>
+                <span className="text-[9px] font-bold text-[#C1B094] uppercase tracking-wider">当前气温</span>
+                <span className="text-base font-bold text-[#8D7B68]">{temp}°C</span>
               </div>
               {isEditing && (
-                <div className="px-1 py-2">
+                <div className="px-1 py-1">
                   <input 
                     type="range" min="-10" max="45" value={temp} 
                     onChange={(e) => setTemp(parseInt(e.target.value))}
-                    className="w-full h-2 rounded-lg cursor-pointer"
+                    className="w-full h-1.5 rounded-lg cursor-pointer"
                   />
-                  <div className="flex justify-between mt-2 px-0.5">
-                    <span className="text-[9px] text-[#C1B094] font-medium">-10°</span>
-                    <span className="text-[9px] text-[#C1B094] font-medium">15°</span>
-                    <span className="text-[9px] text-[#C1B094] font-medium">45°</span>
+                  <div className="flex justify-between mt-1 px-0.5">
+                    <span className="text-[8px] text-[#C1B094] font-medium">-10°</span>
+                    <span className="text-[8px] text-[#C1B094] font-medium">15°</span>
+                    <span className="text-[8px] text-[#C1B094] font-medium">45°</span>
                   </div>
                 </div>
               )}
@@ -164,22 +164,22 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
         </section>
 
         {/* Visual blocks */}
-        <section className="space-y-3">
+        <section className="space-y-2">
           <label className="text-[10px] font-bold text-[#C1B094] uppercase tracking-widest block ml-2">视觉留存</label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {/* Outfit Photo */}
             <div 
               onClick={() => isEditing && fileInputRef.current?.click()}
-              className={`aspect-square bg-white border border-[#F2EBE3] rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden relative warm-shadow ${isEditing ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
+              className={`aspect-square bg-white border border-[#F2EBE3] rounded-[2rem] flex flex-col items-center justify-center overflow-hidden relative warm-shadow ${isEditing ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
             >
               {photo ? (
                 <img src={photo} className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center opacity-40">
-                  <div className="w-10 h-10 bg-[#FFFBF5] rounded-xl flex items-center justify-center mx-auto mb-2">
-                     <svg className="w-6 h-6 text-[#A79277]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                  <div className="w-8 h-8 bg-[#FFFBF5] rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                     <svg className="w-5 h-5 text-[#A79277]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
                   </div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider">全身照</p>
+                  <p className="text-[8px] font-bold uppercase tracking-wider">全身照</p>
                 </div>
               )}
               <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
@@ -188,7 +188,7 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
             {/* Wardrobe selection */}
             <div 
               onClick={() => isEditing && setShowItemPicker(true)}
-              className={`aspect-square bg-white border border-[#F2EBE3] rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden relative warm-shadow ${isEditing ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
+              className={`aspect-square bg-white border border-[#F2EBE3] rounded-[2rem] flex flex-col items-center justify-center overflow-hidden relative warm-shadow ${isEditing ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
             >
               {selectedClothes.length > 0 ? (
                 <div className="grid grid-cols-2 gap-0.5 w-full h-full bg-[#F2EBE3]">
@@ -197,32 +197,32 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
                   ))}
                   {selectedClothes.length > 4 && (
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                         <span className="text-white text-xs font-bold">+{selectedClothes.length - 3}</span>
+                         <span className="text-white text-[10px] font-bold">+{selectedClothes.length - 3}</span>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="text-center opacity-40">
-                  <div className="w-10 h-10 bg-[#FFFBF5] rounded-xl flex items-center justify-center mx-auto mb-2">
-                     <svg className="w-6 h-6 text-[#A79277]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                  <div className="w-8 h-8 bg-[#FFFBF5] rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                     <svg className="w-5 h-5 text-[#A79277]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                   </div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider">关联单品</p>
+                  <p className="text-[8px] font-bold uppercase tracking-wider">关联单品</p>
                 </div>
               )}
             </div>
           </div>
         </section>
 
-        {/* Note */}
-        <section className="space-y-3">
+        {/* Note - Reduced min-height to save space */}
+        <section className="space-y-2">
           <label className="text-[10px] font-bold text-[#C1B094] uppercase tracking-widest block ml-2">碎碎念</label>
-          <div className="bg-white border border-[#F2EBE3] rounded-[2.5rem] p-6 warm-shadow min-h-[160px]">
+          <div className="bg-white border border-[#F2EBE3] rounded-[2rem] p-5 warm-shadow min-h-[100px]">
             {isEditing ? (
               <textarea 
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="这一刻的搭配灵感是..."
-                className="w-full h-full bg-transparent border-none focus:ring-0 text-sm leading-relaxed text-[#4A3F35] resize-none"
+                className="w-full h-24 bg-transparent border-none focus:ring-0 text-sm leading-relaxed text-[#4A3F35] resize-none"
               />
             ) : (
               <p className="text-sm leading-relaxed text-[#4A3F35] whitespace-pre-wrap">{note || '这一天云淡风轻，什么也没留下。'}</p>
@@ -232,10 +232,10 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
 
         {/* Delete Record */}
         {existingRecord && isEditing && onDelete && (
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center">
             <button 
               onClick={() => { if(confirm('真的要永久删除这条珍贵的记录吗？')) onDelete(existingRecord.id); }}
-              className="text-xs font-bold text-red-400 px-8 py-3 rounded-full border border-red-50 active:bg-red-50 transition-colors"
+              className="text-[10px] font-bold text-red-400 px-6 py-2.5 rounded-full border border-red-50 active:bg-red-50 transition-colors"
             >
               移除这条记录
             </button>
@@ -246,41 +246,41 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
       {/* Item Picker Overlay */}
       {showItemPicker && isEditing && (
         <div className="fixed inset-0 bg-[#4A3F35]/30 backdrop-blur-sm z-[60] flex flex-col justify-end animate-in fade-in duration-300">
-          <div className="bg-white h-[85vh] flex flex-col p-8 rounded-t-[3rem] shadow-2xl animate-in slide-in-from-bottom duration-500 border-t border-[#F2EBE3]">
-            <header className="flex justify-between items-center mb-8">
-              <h2 className="text-base font-bold text-[#8D7B68]">选择衣橱单品</h2>
-              <button onClick={() => setShowItemPicker(false)} className="w-10 h-10 bg-[#FFFBF5] rounded-full flex items-center justify-center active:scale-90">
+          <div className="bg-white h-[85vh] flex flex-col p-6 rounded-t-[3rem] shadow-2xl animate-in slide-in-from-bottom duration-500 border-t border-[#F2EBE3]">
+            <header className="flex justify-between items-center mb-6 shrink-0">
+              <h2 className="text-sm font-bold text-[#8D7B68]">选择衣橱单品</h2>
+              <button onClick={() => setShowItemPicker(false)} className="w-10 h-10 bg-[#FFFBF5] rounded-full flex items-center justify-center active:scale-90 shadow-sm">
                 <svg className="w-5 h-5 text-[#C1B094]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </header>
-            <div className="flex-1 overflow-y-auto grid grid-cols-3 gap-3 hide-scrollbar pb-10">
+            <div className="flex-1 overflow-y-auto grid grid-cols-3 gap-3 hide-scrollbar pb-6">
               {clothes.map(item => (
                 <div 
                   key={item.id} 
                   onClick={() => toggleItem(item.id)}
-                  className={`relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer border-4 transition-all ${
-                    selectedItemIds.includes(item.id) ? 'border-[#C8AE7D] scale-95' : 'border-[#F2EBE3]'
+                  className={`relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer border-2 transition-all ${
+                    selectedItemIds.includes(item.id) ? 'border-[#C8AE7D] scale-95 shadow-md' : 'border-[#F2EBE3]'
                   }`}
                 >
                   <img src={item.image} className="w-full h-full object-cover" />
                   {selectedItemIds.includes(item.id) && (
                     <div className="absolute inset-0 bg-[#C8AE7D]/20 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md animate-in zoom-in duration-200">
-                          <svg className="w-5 h-5 text-[#C8AE7D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                        <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md animate-in zoom-in duration-200">
+                          <svg className="w-4 h-4 text-[#C8AE7D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                         </div>
                     </div>
                   )}
                 </div>
               ))}
               {clothes.length === 0 && (
-                  <div className="col-span-full py-20 text-center text-[#A79277] text-xs">
+                  <div className="col-span-full py-20 text-center text-[#A79277] text-[10px]">
                       衣橱里还没有单品，快去添加吧！
                   </div>
               )}
             </div>
             <button 
               onClick={() => setShowItemPicker(false)}
-              className="mt-4 w-full py-4 bg-[#8D7B68] text-white rounded-2xl text-sm font-bold shadow-lg active:scale-95 transition-all"
+              className="mt-2 w-full py-3.5 bg-[#8D7B68] text-white rounded-2xl text-xs font-bold shadow-lg active:scale-95 transition-all"
             >
               确认选择 ({selectedItemIds.length})
             </button>
