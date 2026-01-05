@@ -14,6 +14,7 @@ const App: React.FC = () => {
   const [records, setRecords] = useState<OOTDRecord[]>([]);
   const [isAddingClothing, setIsAddingClothing] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [activeRecord, setActiveRecord] = useState<OOTDRecord | undefined>(undefined);
 
   useEffect(() => {
     setClothes(StorageService.getClothes());
@@ -34,47 +35,76 @@ const App: React.FC = () => {
   };
 
   const handleSaveRecord = (record: OOTDRecord) => {
-    // Check if record for this date already exists (by simple date match)
     const recordDateStr = new Date(record.date).toDateString();
     const filteredRecords = records.filter(r => new Date(r.date).toDateString() !== recordDateStr);
     const updated = [record, ...filteredRecords];
     
     setRecords(updated);
     StorageService.saveRecords(updated);
-    setView('home');
+    setView('calendar');
+    setSelectedCalendarDate(null);
+    setActiveRecord(undefined);
+  };
+
+  const handleDeleteRecord = (id: string) => {
+    const updated = records.filter(r => r.id !== id);
+    setRecords(updated);
+    StorageService.saveRecords(updated);
+    setView('calendar');
+    setActiveRecord(undefined);
     setSelectedCalendarDate(null);
   };
 
   const handleCalendarDayClick = (date: Date) => {
+    const recordDateStr = date.toDateString();
+    const existing = records.find(r => new Date(r.date).toDateString() === recordDateStr);
+    
     setSelectedCalendarDate(date);
+    setActiveRecord(existing);
     setView('record');
   };
 
+  const handleExport = () => {
+    const data = {
+      exportedAt: new Date().toLocaleString(),
+      wardrobeCount: clothes.length,
+      journalCount: records.length,
+      wardrobe: clothes.map(c => ({ 名称: c.name, 分类: c.category, 颜色: c.color })),
+      journal: records.map(r => ({ 日期: new Date(r.date).toLocaleDateString(), 天气: `${r.weather.condition} ${r.weather.temp}°C`, 备忘: r.note }))
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `OOTD_Style_Archive_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    alert('备份文件已成功保存到您的设备。');
+  };
+
   return (
-    <div className="max-w-screen-md mx-auto min-h-screen relative flex flex-col bg-[#F9F8F6] text-stone-800">
-      {/* Dynamic View Rendering */}
-      <main className="flex-1 p-6 pb-24 overflow-y-auto">
+    <div className="max-w-screen-md mx-auto min-h-screen relative flex flex-col bg-[#FFFBF5] text-[#4A3F35]">
+      <main className="flex-1 p-6 pb-28 overflow-y-auto hide-scrollbar">
         {view === 'home' && (
           <div className="space-y-12 py-12">
-            <div className="text-center space-y-2">
-              <h1 className="text-4xl font-serif tracking-tight">OOTD Note</h1>
-              <p className="text-stone-400 text-xs italic tracking-widest uppercase">收纳衣橱 · 感知四季</p>
+            <div className="space-y-2 text-center">
+              <h1 className="text-4xl font-bold tracking-tight text-[#8D7B68]">OOTD Note</h1>
+              <p className="text-[#A79277] text-sm font-medium tracking-widest">穿搭日常 / 感知四季</p>
             </div>
+            
             <BentoGrid 
               recentItems={clothes.slice(0, 4)} 
               recentRecords={records.slice(0, 3)} 
               onNavigate={setView} 
             />
             
-            {/* Quick Action */}
-            <div className="flex justify-center pt-8">
+            <div className="flex flex-col items-center space-y-4 pt-4">
                <button 
-                 onClick={() => { setSelectedCalendarDate(null); setView('record'); }}
-                 className="px-10 py-5 bg-stone-800 text-white rounded-[32px] shadow-2xl hover:scale-105 active:scale-95 transition-all font-medium flex items-center space-x-3"
+                 onClick={() => { setSelectedCalendarDate(null); setActiveRecord(undefined); setView('record'); }}
+                 className="w-20 h-20 bg-[#C8AE7D] text-white rounded-[2.5rem] shadow-lg active:scale-95 transition-all flex items-center justify-center hover:bg-[#B3996A]"
                >
-                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                 <span className="tracking-wide">记录今日</span>
+                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                </button>
+               <p className="text-xs font-bold text-[#A79277] uppercase tracking-widest">记录今日</p>
             </div>
           </div>
         )}
@@ -98,19 +128,19 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-screen-md mx-auto bg-white/70 backdrop-blur-xl border-t border-stone-100 px-10 py-5 flex justify-around items-center z-40">
-        <button onClick={() => setView('home')} className={`p-2 transition-all ${view === 'home' ? 'text-stone-800 scale-110' : 'text-stone-300'}`}>
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+      {/* Navigation Bar - Warm Rounded Floating Bar */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm bg-white/90 backdrop-blur-md rounded-[2rem] warm-shadow px-8 py-4 flex justify-around items-center z-40 border border-[#F2EBE3]">
+        <button onClick={() => setView('home')} className={`p-2 transition-all rounded-xl ${view === 'home' ? 'bg-[#F2EBE3] text-[#8D7B68] scale-110' : 'text-[#C1B094] active:scale-90'}`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
         </button>
-        <button onClick={() => setView('wardrobe')} className={`p-2 transition-all ${view === 'wardrobe' ? 'text-stone-800 scale-110' : 'text-stone-300'}`}>
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+        <button onClick={() => setView('wardrobe')} className={`p-2 transition-all rounded-xl ${view === 'wardrobe' ? 'bg-[#F2EBE3] text-[#8D7B68] scale-110' : 'text-[#C1B094] active:scale-90'}`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" /></svg>
         </button>
-        <button onClick={() => setView('calendar')} className={`p-2 transition-all ${view === 'calendar' ? 'text-stone-800 scale-110' : 'text-stone-300'}`}>
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
+        <button onClick={() => setView('calendar')} className={`p-2 transition-all rounded-xl ${view === 'calendar' ? 'bg-[#F2EBE3] text-[#8D7B68] scale-110' : 'text-[#C1B094] active:scale-90'}`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
         </button>
-        <button onClick={() => StorageService.exportData()} className="p-2 text-stone-300 hover:text-stone-800">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+        <button onClick={handleExport} className="p-2 transition-all text-[#C1B094] active:scale-90 active:text-[#8D7B68]">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
         </button>
       </nav>
 
@@ -119,8 +149,10 @@ const App: React.FC = () => {
         <RecordToday 
           clothes={clothes} 
           onSave={handleSaveRecord} 
-          onCancel={() => { setView('home'); setSelectedCalendarDate(null); }}
+          onCancel={() => { setView('calendar'); setSelectedCalendarDate(null); setActiveRecord(undefined); }}
+          onDelete={handleDeleteRecord}
           initialDate={selectedCalendarDate || undefined}
+          existingRecord={activeRecord}
         />
       )}
 

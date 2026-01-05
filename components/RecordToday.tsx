@@ -6,44 +6,58 @@ interface RecordTodayProps {
   clothes: ClothingItem[];
   onSave: (record: OOTDRecord) => void;
   onCancel: () => void;
+  onDelete?: (id: string) => void;
   initialDate?: Date;
+  existingRecord?: OOTDRecord;
 }
 
-export const RecordToday: React.FC<RecordTodayProps> = ({ clothes, onSave, onCancel, initialDate }) => {
-  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
-  const [note, setNote] = useState('');
-  const [temp, setTemp] = useState(24);
-  const [condition, setCondition] = useState('晴');
-  const [photo, setPhoto] = useState<string | null>(null);
+export const RecordToday: React.FC<RecordTodayProps> = ({ 
+  clothes, 
+  onSave, 
+  onCancel, 
+  onDelete,
+  initialDate, 
+  existingRecord 
+}) => {
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>(existingRecord?.itemIds || []);
+  const [note, setNote] = useState(existingRecord?.note || '');
+  const [temp, setTemp] = useState(existingRecord?.weather.temp || 24);
+  const [condition, setCondition] = useState(existingRecord?.weather.condition || '晴');
+  const [photo, setPhoto] = useState<string | null>(existingRecord?.photo || null);
   const [showItemPicker, setShowItemPicker] = useState(false);
+  const [isEditing, setIsEditing] = useState(!existingRecord); 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const targetDate = initialDate || new Date();
+  const targetDate = initialDate || (existingRecord ? new Date(existingRecord.date) : new Date());
 
-  useEffect(() => {
-    const conditions = ['晴', '多云', '小雨', '阴'];
-    setCondition(conditions[Math.floor(Math.random() * conditions.length)]);
-  }, []);
+  const weatherOptions = [
+    { label: '晴', icon: '☀️' },
+    { label: '多云', icon: '☁️' },
+    { label: '阴', icon: '🌥️' },
+    { label: '雨', icon: '🌧️' },
+    { label: '雪', icon: '❄️' },
+  ];
+
+  const activeIcon = weatherOptions.find(o => o.label === condition)?.icon || '☀️';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isEditing) return;
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhoto(reader.result as string);
-      };
+      reader.onloadend = () => setPhoto(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
   const handleSave = () => {
     const newRecord: OOTDRecord = {
-      id: Date.now().toString(),
+      id: existingRecord?.id || Date.now().toString(),
       date: targetDate.toISOString(),
       weather: {
         temp,
         condition,
-        icon: condition === '晴' ? '☀️' : condition === '多云' ? '☁️' : condition === '小雨' ? '🌧️' : '☁️'
+        icon: activeIcon
       },
       itemIds: selectedItemIds,
       note,
@@ -53,6 +67,7 @@ export const RecordToday: React.FC<RecordTodayProps> = ({ clothes, onSave, onCan
   };
 
   const toggleItem = (id: string) => {
+    if (!isEditing) return;
     setSelectedItemIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
@@ -61,149 +76,213 @@ export const RecordToday: React.FC<RecordTodayProps> = ({ clothes, onSave, onCan
   const selectedClothes = clothes.filter(c => selectedItemIds.includes(c.id));
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
-      <header className="flex justify-between items-center mb-8">
-        <button onClick={onCancel} className="text-stone-400 text-sm">取消</button>
+    <div className="fixed inset-0 bg-[#FFFBF5] z-50 flex flex-col p-6 animate-in slide-in-from-bottom duration-500 overflow-y-auto hide-scrollbar">
+      <header className="flex justify-between items-center mb-8 shrink-0">
+        <button onClick={onCancel} className="text-[#A79277] text-xs font-bold bg-white px-4 py-2 rounded-full border border-[#F2EBE3] active:scale-95">
+          返回
+        </button>
         <div className="text-center">
-          <h1 className="text-lg font-serif">记录今日穿搭</h1>
-          <p className="text-[10px] text-stone-400 uppercase tracking-widest">
-            {targetDate.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}
+          <h1 className="text-sm font-bold text-[#8D7B68] tracking-tight">
+            {isEditing ? '记录此刻' : '穿搭回顾'}
+          </h1>
+          <p className="text-[10px] text-[#C1B094] font-bold tracking-widest mt-0.5 uppercase">
+            {targetDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} STYLE ARCHIVE
           </p>
         </div>
-        <button 
-          onClick={handleSave} 
-          disabled={selectedItemIds.length === 0 && !photo}
-          className={`text-sm font-medium ${selectedItemIds.length === 0 && !photo ? 'text-stone-200' : 'text-stone-800'}`}
-        >
-          完成
-        </button>
+        <div>
+          {isEditing ? (
+            <button 
+              onClick={handleSave} 
+              disabled={selectedItemIds.length === 0 && !photo}
+              className={`text-xs font-bold px-4 py-2 rounded-full transition-all ${selectedItemIds.length === 0 && !photo ? 'bg-[#F2EBE3] text-stone-300' : 'bg-[#8D7B68] text-white shadow-md active:scale-95'}`}
+            >
+              完成
+            </button>
+          ) : (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="text-xs font-bold px-4 py-2 rounded-full bg-white text-[#8D7B68] border border-[#F2EBE3] active:scale-95"
+            >
+              编辑
+            </button>
+          )}
+        </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto space-y-8 pb-10">
-        {/* Weather section */}
-        <div className="bg-stone-50 p-6 rounded-3xl flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <span className="text-4xl">{condition === '晴' ? '☀️' : condition === '多云' ? '☁️' : '🌧️'}</span>
-            <div>
-              <p className="font-medium text-stone-800">{condition}</p>
-              <p className="text-xs text-stone-400">实时气温</p>
+      <div className="flex-1 space-y-8 pb-10">
+        {/* Weather card - Improved for mobile */}
+        <section className="space-y-3">
+          <label className="text-[10px] font-bold text-[#C1B094] uppercase tracking-widest block ml-2">气象感应</label>
+          <div className="bg-white border border-[#F2EBE3] rounded-[2.5rem] p-6 warm-shadow space-y-6">
+            <div className="flex flex-col space-y-4">
+              {isEditing ? (
+                <div className="grid grid-cols-5 gap-2 bg-[#FFFBF5] p-1.5 rounded-[1.5rem] border border-[#F2EBE3]">
+                  {weatherOptions.map(o => (
+                    <button
+                      key={o.label}
+                      onClick={() => setCondition(o.label)}
+                      className={`flex flex-col items-center justify-center py-3 rounded-xl transition-all ${
+                        condition === o.label 
+                          ? 'bg-white shadow-sm text-[#8D7B68] scale-105' 
+                          : 'text-[#C1B094] opacity-50 active:scale-90'
+                      }`}
+                    >
+                      <span className="text-xl mb-1">{o.icon}</span>
+                      <span className="text-[10px] font-bold">{o.label}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3 bg-[#FFFBF5] px-4 py-3 rounded-2xl border border-[#F2EBE3] w-fit">
+                  <span className="text-2xl">{activeIcon}</span>
+                  <span className="text-sm font-bold text-[#4A3F35]">{condition}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col space-y-2">
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[10px] font-bold text-[#C1B094] uppercase tracking-wider">当前气温</span>
+                <span className="text-lg font-bold text-[#8D7B68]">{temp}°C</span>
+              </div>
+              {isEditing && (
+                <div className="px-1 py-2">
+                  <input 
+                    type="range" min="-10" max="45" value={temp} 
+                    onChange={(e) => setTemp(parseInt(e.target.value))}
+                    className="w-full h-2 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between mt-2 px-0.5">
+                    <span className="text-[9px] text-[#C1B094] font-medium">-10°</span>
+                    <span className="text-[9px] text-[#C1B094] font-medium">15°</span>
+                    <span className="text-[9px] text-[#C1B094] font-medium">45°</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <input 
-              type="range" 
-              min="-10" 
-              max="40" 
-              value={temp} 
-              onChange={(e) => setTemp(parseInt(e.target.value))}
-              className="w-24 accent-stone-800"
-            />
-            <span className="text-lg font-medium w-10">{temp}°C</span>
-          </div>
-        </div>
+        </section>
 
-        {/* Outfit Choice */}
-        <div className="space-y-4">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">搭配记录</label>
-          
+        {/* Visual blocks */}
+        <section className="space-y-3">
+          <label className="text-[10px] font-bold text-[#C1B094] uppercase tracking-widest block ml-2">视觉留存</label>
           <div className="grid grid-cols-2 gap-4">
-            {/* Take Photo */}
+            {/* Outfit Photo */}
             <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="aspect-square rounded-3xl bg-stone-50 border border-stone-100 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group"
+              onClick={() => isEditing && fileInputRef.current?.click()}
+              className={`aspect-square bg-white border border-[#F2EBE3] rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden relative warm-shadow ${isEditing ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
             >
               {photo ? (
                 <img src={photo} className="w-full h-full object-cover" />
               ) : (
-                <>
-                  <svg className="w-8 h-8 text-stone-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  <p className="text-[10px] text-stone-400">直接拍一张</p>
-                </>
+                <div className="text-center opacity-40">
+                  <div className="w-10 h-10 bg-[#FFFBF5] rounded-xl flex items-center justify-center mx-auto mb-2">
+                     <svg className="w-6 h-6 text-[#A79277]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                  </div>
+                  <p className="text-[9px] font-bold uppercase tracking-wider">全身照</p>
+                </div>
               )}
               <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-              {photo && (
-                 <button onClick={(e) => { e.stopPropagation(); setPhoto(null); }} className="absolute top-2 right-2 p-1 bg-black/20 rounded-full text-white">
-                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                 </button>
+            </div>
+
+            {/* Wardrobe selection */}
+            <div 
+              onClick={() => isEditing && setShowItemPicker(true)}
+              className={`aspect-square bg-white border border-[#F2EBE3] rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden relative warm-shadow ${isEditing ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
+            >
+              {selectedClothes.length > 0 ? (
+                <div className="grid grid-cols-2 gap-0.5 w-full h-full bg-[#F2EBE3]">
+                  {selectedClothes.slice(0, 4).map(c => (
+                    <img key={c.id} src={c.image} className="w-full h-full object-cover" />
+                  ))}
+                  {selectedClothes.length > 4 && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                         <span className="text-white text-xs font-bold">+{selectedClothes.length - 3}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center opacity-40">
+                  <div className="w-10 h-10 bg-[#FFFBF5] rounded-xl flex items-center justify-center mx-auto mb-2">
+                     <svg className="w-6 h-6 text-[#A79277]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                  </div>
+                  <p className="text-[9px] font-bold uppercase tracking-wider">关联单品</p>
+                </div>
               )}
             </div>
-
-            {/* Select from Wardrobe */}
-            <div 
-              onClick={() => setShowItemPicker(true)}
-              className="aspect-square rounded-3xl bg-stone-50 border border-stone-100 flex flex-col items-center justify-center cursor-pointer overflow-hidden group"
-            >
-               <div className="flex -space-x-4 mb-2">
-                 {selectedClothes.length > 0 ? (
-                    selectedClothes.slice(0, 3).map(c => (
-                      <img key={c.id} src={c.image} className="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" />
-                    ))
-                 ) : (
-                    <div className="w-10 h-10 rounded-full bg-stone-200 border-2 border-white flex items-center justify-center text-stone-400">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                    </div>
-                 )}
-               </div>
-               <p className="text-[10px] text-stone-400">从衣橱选择</p>
-               {selectedItemIds.length > 0 && (
-                 <p className="text-[10px] font-bold mt-1 text-stone-800">{selectedItemIds.length} 个单品</p>
-               )}
-            </div>
           </div>
-        </div>
+        </section>
 
         {/* Note */}
-        <div>
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3 block">备忘</label>
-          <textarea 
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="记录今日心情或搭配灵感..."
-            className="w-full h-32 p-5 rounded-[32px] bg-stone-50 border-none focus:ring-1 focus:ring-stone-200 resize-none text-stone-700 text-sm"
-          />
-        </div>
+        <section className="space-y-3">
+          <label className="text-[10px] font-bold text-[#C1B094] uppercase tracking-widest block ml-2">碎碎念</label>
+          <div className="bg-white border border-[#F2EBE3] rounded-[2.5rem] p-6 warm-shadow min-h-[160px]">
+            {isEditing ? (
+              <textarea 
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="这一刻的搭配灵感是..."
+                className="w-full h-full bg-transparent border-none focus:ring-0 text-sm leading-relaxed text-[#4A3F35] resize-none"
+              />
+            ) : (
+              <p className="text-sm leading-relaxed text-[#4A3F35] whitespace-pre-wrap">{note || '这一天云淡风轻，什么也没留下。'}</p>
+            )}
+          </div>
+        </section>
+
+        {/* Delete Record */}
+        {existingRecord && isEditing && onDelete && (
+          <div className="flex justify-center pt-4">
+            <button 
+              onClick={() => { if(confirm('真的要永久删除这条珍贵的记录吗？')) onDelete(existingRecord.id); }}
+              className="text-xs font-bold text-red-400 px-8 py-3 rounded-full border border-red-50 active:bg-red-50 transition-colors"
+            >
+              移除这条记录
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Item Picker Modal */}
-      {showItemPicker && (
-        <div className="fixed inset-0 bg-black/40 z-[60] flex flex-col justify-end">
-          <div className="bg-white rounded-t-[40px] h-[80vh] flex flex-col p-8 animate-in slide-in-from-bottom duration-300">
-            <header className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-serif">选择单品</h2>
-              <button onClick={() => setShowItemPicker(false)} className="w-8 h-8 flex items-center justify-center bg-stone-100 rounded-full">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      {/* Item Picker Overlay */}
+      {showItemPicker && isEditing && (
+        <div className="fixed inset-0 bg-[#4A3F35]/30 backdrop-blur-sm z-[60] flex flex-col justify-end animate-in fade-in duration-300">
+          <div className="bg-white h-[85vh] flex flex-col p-8 rounded-t-[3rem] shadow-2xl animate-in slide-in-from-bottom duration-500 border-t border-[#F2EBE3]">
+            <header className="flex justify-between items-center mb-8">
+              <h2 className="text-base font-bold text-[#8D7B68]">选择衣橱单品</h2>
+              <button onClick={() => setShowItemPicker(false)} className="w-10 h-10 bg-[#FFFBF5] rounded-full flex items-center justify-center active:scale-90">
+                <svg className="w-5 h-5 text-[#C1B094]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </header>
-            <div className="flex-1 overflow-y-auto grid grid-cols-3 gap-3">
+            <div className="flex-1 overflow-y-auto grid grid-cols-3 gap-3 hide-scrollbar pb-10">
               {clothes.map(item => (
                 <div 
                   key={item.id} 
                   onClick={() => toggleItem(item.id)}
-                  className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all aspect-square ${
-                    selectedItemIds.includes(item.id) ? 'border-stone-800 scale-95 shadow-inner' : 'border-transparent'
+                  className={`relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer border-4 transition-all ${
+                    selectedItemIds.includes(item.id) ? 'border-[#C8AE7D] scale-95' : 'border-[#F2EBE3]'
                   }`}
                 >
                   <img src={item.image} className="w-full h-full object-cover" />
                   {selectedItemIds.includes(item.id) && (
-                    <div className="absolute inset-0 bg-stone-800/20 flex items-center justify-center">
-                      <div className="bg-stone-800 text-white rounded-full p-1 shadow-lg">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                      </div>
+                    <div className="absolute inset-0 bg-[#C8AE7D]/20 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md animate-in zoom-in duration-200">
+                          <svg className="w-5 h-5 text-[#C8AE7D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                        </div>
                     </div>
                   )}
                 </div>
               ))}
               {clothes.length === 0 && (
-                <div className="col-span-3 text-center py-20 text-stone-400 text-sm">
-                  衣橱里还没有单品呢
-                </div>
+                  <div className="col-span-full py-20 text-center text-[#A79277] text-xs">
+                      衣橱里还没有单品，快去添加吧！
+                  </div>
               )}
             </div>
             <button 
               onClick={() => setShowItemPicker(false)}
-              className="mt-6 w-full py-4 bg-stone-800 text-white rounded-2xl font-medium shadow-xl"
+              className="mt-4 w-full py-4 bg-[#8D7B68] text-white rounded-2xl text-sm font-bold shadow-lg active:scale-95 transition-all"
             >
-              确定 ({selectedItemIds.length})
+              确认选择 ({selectedItemIds.length})
             </button>
           </div>
         </div>

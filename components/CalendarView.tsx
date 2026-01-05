@@ -14,7 +14,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
-  const monthYearStr = currentDate.toLocaleDateString('zh-CN', { month: 'long', year: 'numeric' });
+  const monthStr = currentDate.toLocaleDateString('zh-CN', { month: 'long' });
+  const yearStr = currentDate.getFullYear();
 
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
@@ -32,65 +33,70 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
   for (let i = 0; i < startDay; i++) days.push(null);
   for (let i = 1; i <= daysInMonth(currentDate.getFullYear(), currentDate.getMonth()); i++) days.push(i);
 
-  const handleDateSelect = (day: number) => {
-    const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    onDayClick(selectedDate);
-  };
-
   return (
-    <div className="flex flex-col h-full bg-white rounded-[40px] p-8 shadow-sm border border-stone-100">
-      <header className="flex justify-between items-center mb-10">
+    <div className="flex flex-col h-full bg-[#FFFBF5] px-1">
+      <header className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-serif text-stone-800">{monthYearStr}</h1>
-          <p className="text-[10px] text-stone-400 uppercase tracking-widest mt-0.5">Fashion Timeline</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#8D7B68]">{monthStr}</h1>
+          <p className="text-xs text-[#A79277] font-medium tracking-widest mt-1">{yearStr} · 穿搭日记</p>
         </div>
-        <div className="flex space-x-1">
-          <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center hover:bg-stone-50 rounded-full transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+        <div className="flex space-x-3">
+          <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[#F2EBE3] active:bg-[#F2EBE3] transition-colors">
+            <svg className="w-5 h-5 text-[#8D7B68]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center hover:bg-stone-50 rounded-full transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+          <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[#F2EBE3] active:bg-[#F2EBE3] transition-colors">
+            <svg className="w-5 h-5 text-[#8D7B68]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
       </header>
 
-      <div className="grid grid-cols-7 gap-2 flex-1">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className="text-center text-[10px] uppercase font-bold text-stone-300 mb-4">{d}</div>
-        ))}
-        {days.map((day, idx) => {
-          if (!day) return <div key={`empty-${idx}`} />;
-          
-          const record = getRecordForDay(day);
-          // Prefer record photo, then first item image
-          const displayImage = record?.photo || (record && clothes.find(c => c.id === record.itemIds[0])?.image);
+      <div className="bg-white rounded-[2rem] overflow-hidden warm-shadow border border-[#F2EBE3] p-4">
+        <div className="grid grid-cols-7 gap-2">
+          {['日', '一', '二', '三', '四', '五', '六'].map(d => (
+            <div key={d} className="text-center text-[11px] font-bold text-[#C1B094] py-3">{d}</div>
+          ))}
+          {days.map((day, idx) => {
+            if (!day) return <div key={`empty-${idx}`} className="aspect-square" />;
+            
+            const record = getRecordForDay(day);
+            const displayImage = record?.photo || (record && clothes.find(c => c.id === record.itemIds[0])?.image);
 
-          return (
-            <div 
-              key={day} 
-              onClick={() => handleDateSelect(day)}
-              className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative overflow-hidden cursor-pointer transition-all hover:scale-105 active:scale-95 group shadow-sm bg-stone-50 ${record ? 'ring-1 ring-stone-200' : 'hover:bg-stone-100'}`}
-            >
-              <span className={`text-[10px] z-10 absolute top-1.5 left-2 ${record ? 'text-white drop-shadow-lg font-bold' : 'text-stone-400 group-hover:text-stone-600'}`}>{day}</span>
-              {record && (
-                <div className="w-full h-full relative">
-                  {displayImage ? (
-                    <img src={displayImage} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-stone-200" />
-                  )}
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                  <span className="absolute bottom-1 right-1 text-[10px] drop-shadow-lg">{record.weather.icon}</span>
-                </div>
-              )}
-              {!record && (
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                   <svg className="w-3 h-3 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                </div>
-              )}
-            </div>
-          );
-        })}
+            return (
+              <div 
+                key={day} 
+                onClick={() => onDayClick(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
+                className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer group active:scale-95 transition-all flex flex-col items-center justify-center ${record ? 'bg-white' : 'hover:bg-[#FFFBF5]'}`}
+              >
+                <span className={`text-xs z-10 font-bold transition-colors ${record ? 'text-white' : 'text-[#8D7B68]'}`}>{day}</span>
+                {record && (
+                  <div className="absolute inset-0 w-full h-full">
+                    {displayImage ? (
+                      <img src={displayImage} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-[#C8AE7D]" />
+                    )}
+                    <div className="absolute inset-0 bg-black/20" />
+                    <span className="absolute bottom-1 right-1 text-[10px] drop-shadow-sm">{record.weather.icon}</span>
+                  </div>
+                )}
+                {!record && (
+                  <div className="mt-1 w-1 h-1 rounded-full bg-transparent group-hover:bg-[#C1B094] transition-colors" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      
+      <div className="mt-8 flex items-center justify-center space-x-6 text-[#A79277] text-xs font-medium">
+          <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-white border border-[#F2EBE3]" />
+              <span>未记录</span>
+          </div>
+          <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-[#C8AE7D]" />
+              <span>有记录</span>
+          </div>
       </div>
     </div>
   );

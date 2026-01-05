@@ -10,69 +10,63 @@ interface BentoGridProps {
 
 export const BentoGrid: React.FC<BentoGridProps> = ({ recentItems, recentRecords, onNavigate }) => {
   return (
-    <div className="grid grid-cols-2 gap-4 h-full">
-      {/* Wardrobe Preview - Left */}
+    <div className="grid grid-cols-2 gap-4">
+      {/* Wardrobe Preview */}
       <div 
         onClick={() => onNavigate('wardrobe')}
-        className="bg-white rounded-3xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between overflow-hidden group border border-stone-100 min-h-[220px]"
+        className="bg-white p-6 flex flex-col justify-between active:scale-[0.98] transition-all rounded-[2rem] warm-shadow min-h-[200px] cursor-pointer border border-[#F2EBE3]"
       >
         <div>
-          <h2 className="text-xl font-serif mb-0.5">我的衣橱</h2>
-          <p className="text-stone-400 text-[10px] uppercase tracking-wider">My Closet</p>
+          <h2 className="text-base font-bold text-[#8D7B68]">我的衣橱</h2>
+          <p className="text-[10px] text-[#C1B094] uppercase tracking-widest mt-0.5">Closet Assets</p>
         </div>
         
-        <div className="mt-4 flex flex-wrap gap-1.5 relative justify-center">
+        <div className="mt-4 flex flex-wrap gap-2 justify-center">
           {recentItems.length > 0 ? (
-            recentItems.slice(0, 3).map((item, idx) => (
+            recentItems.slice(0, 2).map((item) => (
               <div 
                 key={item.id} 
-                className={`w-14 h-14 rounded-xl overflow-hidden bg-stone-50 border border-stone-100 transition-transform group-hover:scale-110`}
-                style={{ transform: `rotate(${idx % 2 === 0 ? -4 : 4}deg) translateY(${idx * 2}px)` }}
+                className="w-14 h-18 bg-[#FFFBF5] rounded-xl border border-[#F2EBE3] overflow-hidden"
               >
                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
               </div>
             ))
           ) : (
-            <div className="w-full flex flex-col items-center py-6 opacity-20">
-              <svg className="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-              <p className="text-[10px]">衣橱空荡荡</p>
+            <div className="w-full flex flex-col items-center py-4 opacity-30">
+              <div className="w-8 h-8 rounded-full bg-[#F2EBE3] mb-1" />
+              <p className="text-[9px] font-bold uppercase">Empty</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Journal Preview - Right */}
+      {/* Journal Preview */}
       <div 
         onClick={() => onNavigate('calendar')}
-        className="bg-[#EFEEEC] rounded-3xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between border border-stone-200/50 min-h-[220px]"
+        className="bg-white p-6 flex flex-col justify-between active:scale-[0.98] transition-all rounded-[2rem] warm-shadow min-h-[200px] cursor-pointer border border-[#F2EBE3]"
       >
         <div>
-          <h2 className="text-xl font-serif mb-0.5">穿搭日志</h2>
-          <p className="text-stone-400 text-[10px] uppercase tracking-wider">Journal</p>
+          <h2 className="text-base font-bold text-[#8D7B68]">穿搭日志</h2>
+          <p className="text-[10px] text-[#C1B094] uppercase tracking-widest mt-0.5">Style Journal</p>
         </div>
 
         <div className="mt-4 space-y-3 flex-1 overflow-hidden">
           {recentRecords.length > 0 ? (
             recentRecords.slice(0, 3).map((record) => (
-              <div key={record.id} className="flex items-center space-x-2 border-l border-stone-300 pl-3 py-0.5">
-                <span className="text-[10px] font-medium text-stone-500 w-8">
-                  {new Date(record.date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+              <div key={record.id} className="flex items-center space-x-2">
+                <span className="text-[10px] font-bold text-[#C1B094] bg-[#F2EBE3] px-1.5 py-0.5 rounded-md">
+                  {new Date(record.date).toLocaleDateString('zh-CN', { day: 'numeric', month: 'numeric' })}
                 </span>
-                <span className="text-sm opacity-80">{record.weather.icon}</span>
-                <p className="text-[11px] text-stone-600 truncate">{record.note || '今日记录'}</p>
+                <p className="text-[11px] text-[#4A3F35] truncate flex-1">
+                   {record.note || '记录美好的一天'}
+                </p>
               </div>
             ))
           ) : (
-            <div className="py-6 text-center opacity-30">
-              <p className="text-[10px]">记录今天的样子</p>
+            <div className="py-4 text-center opacity-30">
+               <p className="text-[9px] font-bold uppercase tracking-widest">No entries</p>
             </div>
           )}
-        </div>
-
-        <div className="mt-2 flex justify-end">
-           <div className="w-8 h-8 rounded-full bg-stone-800 text-white flex items-center justify-center">
-             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-           </div>
         </div>
       </div>
     </div>
