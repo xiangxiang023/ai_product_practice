@@ -1,0 +1,8 @@
+{
+  "name": "OOTD Note",
+  "description": "A private, minimalist digital wardrobe and daily outfit journal that connects your style with the seasons and weather.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
