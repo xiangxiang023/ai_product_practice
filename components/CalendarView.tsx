@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { OOTDRecord, ClothingItem } from '../types';
 
 interface CalendarViewProps {
@@ -10,15 +10,13 @@ interface CalendarViewProps {
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, onDayClick }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
   const monthStr = currentDate.toLocaleDateString('zh-CN', { month: 'long' });
   const yearStr = currentDate.getFullYear();
-
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
 
   const getRecordForDay = (day: number) => {
     return records.find(r => {
@@ -33,21 +31,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
   for (let i = 0; i < startDay; i++) days.push(null);
   for (let i = 1; i <= daysInMonth(currentDate.getFullYear(), currentDate.getMonth()); i++) days.push(i);
 
+  const handleDateSelect = (year: number, month: number) => {
+    setCurrentDate(new Date(year, month, 1));
+    setIsPickerOpen(false);
+  };
+
   return (
     <div className="flex flex-col h-full bg-[var(--theme-bg)] px-1">
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[var(--theme-primary)]">{monthStr}</h1>
           <p className="text-xs text-[var(--theme-muted)] font-medium tracking-widest mt-1">{yearStr} · 穿搭日记</p>
         </div>
-        <div className="flex space-x-3">
-          <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[var(--theme-secondary)] active:bg-[var(--theme-secondary)] transition-colors">
-            <svg className="w-5 h-5 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[var(--theme-secondary)] active:bg-[var(--theme-secondary)] transition-colors">
-            <svg className="w-5 h-5 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
-          </button>
-        </div>
+        <button 
+          onClick={() => setIsPickerOpen(true)}
+          className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl warm-shadow border border-[var(--theme-secondary)] active:scale-90 transition-all"
+        >
+          <svg className="w-6 h-6 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
       </header>
 
       <div className="bg-white rounded-[2rem] overflow-hidden warm-shadow border border-[var(--theme-secondary)] p-4">
@@ -97,6 +100,83 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
               <div className="w-3 h-3 rounded-full bg-[var(--theme-primary)]" />
               <span>有记录</span>
           </div>
+      </div>
+
+      {/* Date Picker Modal */}
+      {isPickerOpen && (
+        <DatePickerModal 
+          initialYear={currentDate.getFullYear()} 
+          initialMonth={currentDate.getMonth()} 
+          onConfirm={handleDateSelect} 
+          onClose={() => setIsPickerOpen(false)} 
+        />
+      )}
+    </div>
+  );
+};
+
+interface DatePickerModalProps {
+  initialYear: number;
+  initialMonth: number;
+  onConfirm: (year: number, month: number) => void;
+  onClose: () => void;
+}
+
+const DatePickerModal: React.FC<DatePickerModalProps> = ({ initialYear, initialMonth, onConfirm, onClose }) => {
+  const [selectedYear, setSelectedYear] = useState(initialYear);
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  
+  const years = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i);
+  const months = Array.from({ length: 12 }, (_, i) => i);
+
+  return (
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] flex items-end animate-in fade-in duration-300">
+      <div className="w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-500 shadow-2xl border-t border-[var(--theme-secondary)]">
+        <header className="flex justify-between items-center mb-8">
+          <h2 className="text-base font-bold text-[var(--theme-primary)]">跳转至时间线</h2>
+          <button onClick={onClose} className="p-2 bg-[var(--theme-bg)] rounded-full text-[var(--theme-muted)] active:scale-90">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </header>
+
+        <div className="flex gap-4 mb-8">
+          {/* Year Column */}
+          <div className="flex-1 h-48 overflow-y-auto hide-scrollbar snap-y snap-mandatory bg-[var(--theme-bg)] rounded-3xl p-2 border border-[var(--theme-secondary)]">
+            <div className="py-16">
+              {years.map(y => (
+                <button
+                  key={y}
+                  onClick={() => setSelectedYear(y)}
+                  className={`w-full py-4 snap-center text-sm font-bold transition-all ${selectedYear === y ? 'text-[var(--theme-primary)] text-lg scale-110' : 'text-[var(--theme-muted)] opacity-40'}`}
+                >
+                  {y}年
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Month Column */}
+          <div className="flex-1 h-48 overflow-y-auto hide-scrollbar snap-y snap-mandatory bg-[var(--theme-bg)] rounded-3xl p-2 border border-[var(--theme-secondary)]">
+            <div className="py-16">
+              {months.map(m => (
+                <button
+                  key={m}
+                  onClick={() => setSelectedMonth(m)}
+                  className={`w-full py-4 snap-center text-sm font-bold transition-all ${selectedMonth === m ? 'text-[var(--theme-primary)] text-lg scale-110' : 'text-[var(--theme-muted)] opacity-40'}`}
+                >
+                  {m + 1}月
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => onConfirm(selectedYear, selectedMonth)}
+          className="w-full py-4 bg-[var(--theme-primary)] text-white rounded-2xl text-sm font-bold shadow-lg active:scale-95 transition-all"
+        >
+          确定并跳转
+        </button>
       </div>
     </div>
   );
