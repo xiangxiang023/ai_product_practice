@@ -34,26 +34,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
   for (let i = 1; i <= daysInMonth(currentDate.getFullYear(), currentDate.getMonth()); i++) days.push(i);
 
   return (
-    <div className="flex flex-col h-full bg-[#FFFBF5] px-1">
+    <div className="flex flex-col h-full bg-[var(--theme-bg)] px-1">
       <header className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#8D7B68]">{monthStr}</h1>
-          <p className="text-xs text-[#A79277] font-medium tracking-widest mt-1">{yearStr} · 穿搭日记</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--theme-primary)]">{monthStr}</h1>
+          <p className="text-xs text-[var(--theme-muted)] font-medium tracking-widest mt-1">{yearStr} · 穿搭日记</p>
         </div>
         <div className="flex space-x-3">
-          <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[#F2EBE3] active:bg-[#F2EBE3] transition-colors">
-            <svg className="w-5 h-5 text-[#8D7B68]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+          <button onClick={prevMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[var(--theme-secondary)] active:bg-[var(--theme-secondary)] transition-colors">
+            <svg className="w-5 h-5 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[#F2EBE3] active:bg-[#F2EBE3] transition-colors">
-            <svg className="w-5 h-5 text-[#8D7B68]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+          <button onClick={nextMonth} className="w-10 h-10 flex items-center justify-center bg-white rounded-full warm-shadow border border-[var(--theme-secondary)] active:bg-[var(--theme-secondary)] transition-colors">
+            <svg className="w-5 h-5 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
       </header>
 
-      <div className="bg-white rounded-[2rem] overflow-hidden warm-shadow border border-[#F2EBE3] p-4">
+      <div className="bg-white rounded-[2rem] overflow-hidden warm-shadow border border-[var(--theme-secondary)] p-4">
         <div className="grid grid-cols-7 gap-2">
           {['日', '一', '二', '三', '四', '五', '六'].map(d => (
-            <div key={d} className="text-center text-[11px] font-bold text-[#C1B094] py-3">{d}</div>
+            <div key={d} className="text-center text-[11px] font-bold text-[var(--theme-muted)] py-3">{d}</div>
           ))}
           {days.map((day, idx) => {
             if (!day) return <div key={`empty-${idx}`} className="aspect-square" />;
@@ -65,22 +65,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
               <div 
                 key={day} 
                 onClick={() => onDayClick(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
-                className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer group active:scale-95 transition-all flex flex-col items-center justify-center ${record ? 'bg-white' : 'hover:bg-[#FFFBF5]'}`}
+                className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer group active:scale-95 transition-all flex flex-col items-center justify-center ${record ? 'bg-white' : 'hover:bg-[var(--theme-bg)]'}`}
               >
-                <span className={`text-xs z-10 font-bold transition-colors ${record ? 'text-white' : 'text-[#8D7B68]'}`}>{day}</span>
+                <span className={`text-xs z-10 font-bold transition-colors ${record ? 'text-white' : 'text-[var(--theme-primary)]'}`}>{day}</span>
                 {record && (
                   <div className="absolute inset-0 w-full h-full">
                     {displayImage ? (
                       <img src={displayImage} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-[#C8AE7D]" />
+                      <div className="w-full h-full bg-[var(--theme-primary)] opacity-60" />
                     )}
                     <div className="absolute inset-0 bg-black/20" />
                     <span className="absolute bottom-1 right-1 text-[10px] drop-shadow-sm">{record.weather.icon}</span>
                   </div>
                 )}
                 {!record && (
-                  <div className="mt-1 w-1 h-1 rounded-full bg-transparent group-hover:bg-[#C1B094] transition-colors" />
+                  <div className="mt-1 w-1 h-1 rounded-full bg-transparent group-hover:bg-[var(--theme-muted)] transition-colors" />
                 )}
               </div>
             );
@@ -88,13 +88,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
         </div>
       </div>
       
-      <div className="mt-8 flex items-center justify-center space-x-6 text-[#A79277] text-xs font-medium">
+      <div className="mt-8 flex items-center justify-center space-x-6 text-[var(--theme-muted)] text-xs font-medium">
           <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-white border border-[#F2EBE3]" />
+              <div className="w-3 h-3 rounded-full bg-white border border-[var(--theme-secondary)]" />
               <span>未记录</span>
           </div>
           <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-[#C8AE7D]" />
+              <div className="w-3 h-3 rounded-full bg-[var(--theme-primary)]" />
               <span>有记录</span>
           </div>
       </div>

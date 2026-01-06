@@ -2,9 +2,9 @@
 export interface ClothingItem {
   id: string;
   name: string;
-  category: string; // Changed from enum to string for custom input
-  color: string;    // Changed from hex-only to string for custom input
-  image: string;    // Base64 or URL
+  category: string;
+  color: string;
+  image: string;
   brand?: string;
   price?: number;
   createdAt: number;
@@ -18,11 +18,21 @@ export interface WeatherData {
 
 export interface OOTDRecord {
   id: string;
-  date: string; // ISO String
+  date: string;
   weather: WeatherData;
   itemIds: string[];
   note: string;
-  photo?: string; // Optional direct photo of the outfit
+  photo?: string;
 }
 
-export type View = 'home' | 'wardrobe' | 'calendar' | 'record';
+export type View = 'home' | 'wardrobe' | 'calendar' | 'record' | 'report';
+
+export interface AppTheme {
+  id: string;
+  name: string;
+  primary: string;    // Accent color (buttons, active states)
+  secondary: string;  // Light versions of primary
+  background: string; // Main page background
+  text: string;       // Primary text
+  muted: string;      // Subtitles/labels
+}

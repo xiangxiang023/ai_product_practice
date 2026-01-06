@@ -3,7 +3,8 @@ import { ClothingItem, OOTDRecord } from '../types';
 
 const KEYS = {
   CLOTHES: 'ootd_clothes',
-  RECORDS: 'ootd_records'
+  RECORDS: 'ootd_records',
+  THEME: 'ootd_theme'
 };
 
 export const StorageService = {
@@ -21,16 +22,10 @@ export const StorageService = {
   saveRecords: (records: OOTDRecord[]) => {
     localStorage.setItem(KEYS.RECORDS, JSON.stringify(records));
   },
-  exportData: () => {
-    const data = {
-      clothes: StorageService.getClothes(),
-      records: StorageService.getRecords()
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ootd_note_backup_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
+  getTheme: (): string | null => {
+    return localStorage.getItem(KEYS.THEME);
+  },
+  saveTheme: (themeId: string) => {
+    localStorage.setItem(KEYS.THEME, themeId);
   }
 };
