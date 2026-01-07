@@ -141,7 +141,7 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
 
             <div className="flex flex-col space-y-1.5">
               <div className="flex justify-between items-center px-1">
-                <span className="text-[9px] font-bold text-[var(--theme-muted)] uppercase tracking-wider">当前气温</span>
+                <span className="text-[9px] font-bold text-[var(--theme-muted)] uppercase tracking-wider">气温</span>
                 <span className="text-base font-bold text-[var(--theme-primary)]">{temp}°C</span>
               </div>
               {isEditing && (
