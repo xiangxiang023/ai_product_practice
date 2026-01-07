@@ -39,7 +39,7 @@ export const Wardrobe: React.FC<WardrobeProps> = ({ items, onAddItem, onDeleteIt
           <button
             key={cat}
             onClick={() => setActiveTab(cat)}
-            className={`text-xs font-bold px-4 py-2 rounded-full transition-all border ${
+            className={`text-xs font-bold px-4 py-2 rounded-full transition-all border shrink-0 ${
               activeTab === cat 
               ? 'bg-[var(--theme-primary)] text-white border-[var(--theme-primary)]' 
               : 'bg-white text-[var(--theme-muted)] border-[var(--theme-secondary)]'
@@ -50,11 +50,11 @@ export const Wardrobe: React.FC<WardrobeProps> = ({ items, onAddItem, onDeleteIt
         ))}
       </div>
 
-      {/* Grid - Rounded card style */}
-      <div className="grid grid-cols-2 gap-6 mt-2 pb-24 overflow-y-auto px-1">
+      {/* Grid - Fixed card size consistency */}
+      <div className="grid grid-cols-2 gap-4 mt-2 pb-24 overflow-y-auto px-1">
         {filteredItems.map((item) => (
-          <div key={item.id} className="flex flex-col group bg-white rounded-[2rem] p-3 warm-shadow border border-[var(--theme-secondary)]">
-            <div className="relative overflow-hidden aspect-[4/5] rounded-[1.5rem] mb-3 group-active:opacity-80 transition-opacity">
+          <div key={item.id} className="flex flex-col h-[280px] bg-white rounded-[2rem] p-3 warm-shadow border border-[var(--theme-secondary)] overflow-hidden">
+            <div className="relative overflow-hidden aspect-[4/5] rounded-[1.5rem] mb-3 shrink-0">
               <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
               
               <button 
@@ -64,13 +64,11 @@ export const Wardrobe: React.FC<WardrobeProps> = ({ items, onAddItem, onDeleteIt
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="space-y-1 px-1">
-              <p className="text-sm font-bold text-[var(--theme-text)] truncate">{item.name}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-[var(--theme-muted)] font-medium uppercase tracking-wider">{item.category}</span>
-                <div className="flex items-center space-x-1">
-                    <span className="text-[10px] text-[var(--theme-muted)]">{item.color}</span>
-                </div>
+            <div className="flex flex-col flex-1 justify-between min-h-0 px-1 pb-1 overflow-hidden">
+              <p className="text-sm font-bold text-[var(--theme-text)] truncate w-full">{item.name}</p>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-[10px] text-[var(--theme-muted)] font-medium uppercase tracking-wider truncate flex-1 mr-2">{item.category}</span>
+                <span className="text-[10px] text-[var(--theme-muted)] shrink-0">{item.color}</span>
               </div>
             </div>
           </div>

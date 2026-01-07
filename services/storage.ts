@@ -1,31 +1,55 @@
 
+import Dexie, { type Table } from 'https://esm.sh/dexie';
 import { ClothingItem, OOTDRecord } from '../types';
 
-const KEYS = {
-  CLOTHES: 'ootd_clothes',
-  RECORDS: 'ootd_records',
-  THEME: 'ootd_theme'
+// Fix: Use instance-based initialization with type casting to ensure 'version' and table properties are correctly typed.
+// This avoids issues where class inheritance from CDN-delivered ESM imports might not resolve types properly.
+export const db = new Dexie('ootd_db') as Dexie & {
+  clothes: Table<ClothingItem>;
+  records: Table<OOTDRecord>;
 };
 
+// Schema definition
+db.version(1).stores({
+  clothes: 'id, category, createdAt',
+  records: 'id, date'
+});
+
+const THEME_KEY = 'ootd_theme';
+
 export const StorageService = {
-  getClothes: (): ClothingItem[] => {
-    const data = localStorage.getItem(KEYS.CLOTHES);
-    return data ? JSON.parse(data) : [];
+  // Clothing Items
+  async getClothes(): Promise<ClothingItem[]> {
+    return await db.clothes.orderBy('createdAt').reverse().toArray();
   },
-  saveClothes: (clothes: ClothingItem[]) => {
-    localStorage.setItem(KEYS.CLOTHES, JSON.stringify(clothes));
+
+  async saveClothing(item: ClothingItem): Promise<void> {
+    await db.clothes.put(item);
   },
-  getRecords: (): OOTDRecord[] => {
-    const data = localStorage.getItem(KEYS.RECORDS);
-    return data ? JSON.parse(data) : [];
+
+  async deleteClothing(id: string): Promise<void> {
+    await db.clothes.delete(id);
   },
-  saveRecords: (records: OOTDRecord[]) => {
-    localStorage.setItem(KEYS.RECORDS, JSON.stringify(records));
+
+  // OOTD Records
+  async getRecords(): Promise<OOTDRecord[]> {
+    return await db.records.orderBy('date').reverse().toArray();
   },
-  getTheme: (): string | null => {
-    return localStorage.getItem(KEYS.THEME);
+
+  async saveRecord(record: OOTDRecord): Promise<void> {
+    await db.records.put(record);
   },
-  saveTheme: (themeId: string) => {
-    localStorage.setItem(KEYS.THEME, themeId);
+
+  async deleteRecord(id: string): Promise<void> {
+    await db.records.delete(id);
+  },
+
+  // Theme (Simple string, keep in localStorage for immediate load)
+  getTheme(): string | null {
+    return localStorage.getItem(THEME_KEY);
+  },
+
+  saveTheme(themeId: string): void {
+    localStorage.setItem(THEME_KEY, themeId);
   }
 };

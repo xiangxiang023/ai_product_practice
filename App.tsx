@@ -27,44 +27,50 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
   const [activeRecord, setActiveRecord] = useState<OOTDRecord | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
 
   const currentTheme = useMemo(() => 
     THEMES.find(t => t.id === currentThemeId) || THEMES[0]
   , [currentThemeId]);
 
   useEffect(() => {
-    setClothes(StorageService.getClothes());
-    setRecords(StorageService.getRecords());
+    const initData = async () => {
+      const storedClothes = await StorageService.getClothes();
+      const storedRecords = await StorageService.getRecords();
+      setClothes(storedClothes);
+      setRecords(storedRecords);
+      setIsLoading(false);
+    };
+    initData();
   }, []);
 
-  const handleAddClothes = (item: ClothingItem) => {
-    const updated = [item, ...clothes];
+  const handleAddClothes = async (item: ClothingItem) => {
+    await StorageService.saveClothing(item);
+    const updated = await StorageService.getClothes();
     setClothes(updated);
-    StorageService.saveClothes(updated);
     setIsAddingClothing(false);
+    setView('wardrobe'); 
   };
 
-  const handleDeleteItem = (id: string) => {
-    const updated = clothes.filter(i => i.id !== id);
+  const handleDeleteItem = async (id: string) => {
+    await StorageService.deleteClothing(id);
+    const updated = await StorageService.getClothes();
     setClothes(updated);
-    StorageService.saveClothes(updated);
   };
 
-  const handleSaveRecord = (record: OOTDRecord) => {
-    const recordDateStr = new Date(record.date).toDateString();
-    const filteredRecords = records.filter(r => new Date(r.date).toDateString() !== recordDateStr);
-    const updated = [record, ...filteredRecords];
+  const handleSaveRecord = async (record: OOTDRecord) => {
+    await StorageService.saveRecord(record);
+    const updated = await StorageService.getRecords();
     setRecords(updated);
-    StorageService.saveRecords(updated);
     setView('calendar');
     setSelectedCalendarDate(null);
     setActiveRecord(undefined);
   };
 
-  const handleDeleteRecord = (id: string) => {
-    const updated = records.filter(r => r.id !== id);
+  const handleDeleteRecord = async (id: string) => {
+    await StorageService.deleteRecord(id);
+    const updated = await StorageService.getRecords();
     setRecords(updated);
-    StorageService.saveRecords(updated);
     setView('calendar');
     setActiveRecord(undefined);
     setSelectedCalendarDate(null);
@@ -83,7 +89,6 @@ const App: React.FC = () => {
     StorageService.saveTheme(id);
   };
 
-  // CSS Variable injection for the whole app
   const themeStyles = {
     '--theme-primary': currentTheme.primary,
     '--theme-secondary': currentTheme.secondary,
@@ -91,6 +96,14 @@ const App: React.FC = () => {
     '--theme-text': currentTheme.text,
     '--theme-muted': currentTheme.muted,
   } as React.CSSProperties;
+
+  if (isLoading) {
+    return (
+      <div style={themeStyles} className="flex items-center justify-center min-h-screen bg-[var(--theme-bg)]">
+        <div className="animate-pulse text-[var(--theme-primary)] font-bold tracking-widest text-lg">OOTD Note...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={themeStyles} className="max-w-screen-md mx-auto min-h-screen relative flex flex-col bg-[var(--theme-bg)] text-[var(--theme-text)] transition-colors duration-500">
@@ -157,20 +170,18 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Navigation Bar */}
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm bg-white/90 backdrop-blur-md rounded-[2rem] warm-shadow px-8 py-4 flex justify-around items-center z-40 border border-[var(--theme-secondary)]">
-        <button onClick={() => setView('home')} className={`p-2 transition-all rounded-xl ${view === 'home' ? 'bg-[var(--theme-secondary)] text-[var(--theme-primary)] scale-110' : 'text-[var(--theme-muted)] active:scale-90'}`}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-        </button>
         <button onClick={() => setView('wardrobe')} className={`p-2 transition-all rounded-xl ${view === 'wardrobe' ? 'bg-[var(--theme-secondary)] text-[var(--theme-primary)] scale-110' : 'text-[var(--theme-muted)] active:scale-90'}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" /></svg>
         </button>
+        <button onClick={() => setView('home')} className={`p-2 transition-all rounded-xl ${view === 'home' ? 'bg-[var(--theme-secondary)] text-[var(--theme-primary)] scale-110' : 'text-[var(--theme-muted)] active:scale-90'}`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+        </button>
         <button onClick={() => setView('calendar')} className={`p-2 transition-all rounded-xl ${view === 'calendar' ? 'bg-[var(--theme-secondary)] text-[var(--theme-primary)] scale-110' : 'text-[var(--theme-muted)] active:scale-90'}`}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
         </button>
       </nav>
 
-      {/* Overlays */}
       {view === 'record' && (
         <RecordToday 
           clothes={clothes} 

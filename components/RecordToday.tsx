@@ -89,7 +89,7 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
             {targetDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} STYLE ARCHIVE
           </p>
         </div>
-        <div>
+        <div className="flex items-center space-x-2">
           {isEditing ? (
             <button 
               onClick={handleSave} 
@@ -216,7 +216,7 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
               <textarea 
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="这一刻的搭配灵感是..."
+                placeholder="今日的穿搭灵感或心情是..."
                 className="w-full h-24 bg-transparent border-none focus:ring-0 text-sm leading-relaxed text-[var(--theme-text)] resize-none"
               />
             ) : (
@@ -225,11 +225,11 @@ export const RecordToday: React.FC<RecordTodayProps> = ({
           </div>
         </section>
 
-        {existingRecord && isEditing && onDelete && (
-          <div className="flex justify-center">
+        {existingRecord && !isEditing && onDelete && (
+          <div className="flex justify-center pt-8 pb-12">
             <button 
               onClick={() => { if(confirm('真的要永久删除这条珍贵的记录吗？')) onDelete(existingRecord.id); }}
-              className="text-[10px] font-bold text-red-400 px-6 py-2.5 rounded-full border border-red-50 active:bg-red-50 transition-colors"
+              className="text-[11px] font-bold text-red-400 px-10 py-4 rounded-full border border-red-100 bg-white/50 active:bg-red-50 transition-colors shadow-sm"
             >
               移除这条记录
             </button>

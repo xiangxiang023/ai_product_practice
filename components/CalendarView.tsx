@@ -36,6 +36,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
     setIsPickerOpen(false);
   };
 
+  const today = new Date();
+  const isToday = (day: number) => 
+    day === today.getDate() && 
+    currentDate.getMonth() === today.getMonth() && 
+    currentDate.getFullYear() === today.getFullYear();
+
   return (
     <div className="flex flex-col h-full bg-[var(--theme-bg)] px-1">
       <header className="flex justify-between items-end mb-8">
@@ -63,6 +69,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
             
             const record = getRecordForDay(day);
             const displayImage = record?.photo || (record && clothes.find(c => c.id === record.itemIds[0])?.image);
+            const todayMark = isToday(day);
 
             return (
               <div 
@@ -70,7 +77,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
                 onClick={() => onDayClick(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
                 className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer group active:scale-95 transition-all flex flex-col items-center justify-center ${record ? 'bg-white' : 'hover:bg-[var(--theme-bg)]'}`}
               >
-                <span className={`text-xs z-10 font-bold transition-colors ${record ? 'text-white' : 'text-[var(--theme-primary)]'}`}>{day}</span>
+                <div className={`z-10 w-7 h-7 flex items-center justify-center rounded-full transition-all ${
+                    todayMark ? 'bg-[var(--theme-primary)] text-white shadow-md' : 
+                    record ? 'text-white drop-shadow-sm' : 
+                    'text-[var(--theme-primary)]'
+                  }`}>
+                  <span className={`text-xs font-bold`}>{day}</span>
+                </div>
+                
                 {record && (
                   <div className="absolute inset-0 w-full h-full">
                     {displayImage ? (
@@ -82,7 +96,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
                     <span className="absolute bottom-1 right-1 text-[10px] drop-shadow-sm">{record.weather.icon}</span>
                   </div>
                 )}
-                {!record && (
+                {!record && !todayMark && (
                   <div className="mt-1 w-1 h-1 rounded-full bg-transparent group-hover:bg-[var(--theme-muted)] transition-colors" />
                 )}
               </div>
@@ -98,11 +112,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ records, clothes, on
           </div>
           <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-[var(--theme-primary)]" />
-              <span>有记录</span>
+              <span>今日 / 有穿搭</span>
           </div>
       </div>
 
-      {/* Date Picker Modal */}
       {isPickerOpen && (
         <DatePickerModal 
           initialYear={currentDate.getFullYear()} 
@@ -125,9 +138,25 @@ interface DatePickerModalProps {
 const DatePickerModal: React.FC<DatePickerModalProps> = ({ initialYear, initialMonth, onConfirm, onClose }) => {
   const [selectedYear, setSelectedYear] = useState(initialYear);
   const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  const yearContainerRef = useRef<HTMLDivElement>(null);
+  const monthContainerRef = useRef<HTMLDivElement>(null);
   
   const years = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i);
   const months = Array.from({ length: 12 }, (_, i) => i);
+
+  useEffect(() => {
+    // Initial scroll to current selection
+    const scrollSelection = () => {
+      const activeYear = yearContainerRef.current?.querySelector(`[data-year="${selectedYear}"]`);
+      const activeMonth = monthContainerRef.current?.querySelector(`[data-month="${selectedMonth}"]`);
+      
+      activeYear?.scrollIntoView({ behavior: 'auto', block: 'center' });
+      activeMonth?.scrollIntoView({ behavior: 'auto', block: 'center' });
+    };
+
+    const timer = setTimeout(scrollSelection, 100);
+    return () => clearTimeout(timer);
+  }, [selectedYear, selectedMonth]); // Added dependencies to ensure it定格 in case state updates
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] flex items-end animate-in fade-in duration-300">
@@ -141,11 +170,15 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({ initialYear, initialM
 
         <div className="flex gap-4 mb-8">
           {/* Year Column */}
-          <div className="flex-1 h-48 overflow-y-auto hide-scrollbar snap-y snap-mandatory bg-[var(--theme-bg)] rounded-3xl p-2 border border-[var(--theme-secondary)]">
+          <div 
+            ref={yearContainerRef}
+            className="flex-1 h-48 overflow-y-auto hide-scrollbar snap-y snap-mandatory bg-[var(--theme-bg)] rounded-3xl p-2 border border-[var(--theme-secondary)]"
+          >
             <div className="py-16">
               {years.map(y => (
                 <button
                   key={y}
+                  data-year={y}
                   onClick={() => setSelectedYear(y)}
                   className={`w-full py-4 snap-center text-sm font-bold transition-all ${selectedYear === y ? 'text-[var(--theme-primary)] text-lg scale-110' : 'text-[var(--theme-muted)] opacity-40'}`}
                 >
@@ -156,11 +189,15 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({ initialYear, initialM
           </div>
 
           {/* Month Column */}
-          <div className="flex-1 h-48 overflow-y-auto hide-scrollbar snap-y snap-mandatory bg-[var(--theme-bg)] rounded-3xl p-2 border border-[var(--theme-secondary)]">
+          <div 
+            ref={monthContainerRef}
+            className="flex-1 h-48 overflow-y-auto hide-scrollbar snap-y snap-mandatory bg-[var(--theme-bg)] rounded-3xl p-2 border border-[var(--theme-secondary)]"
+          >
             <div className="py-16">
               {months.map(m => (
                 <button
                   key={m}
+                  data-month={m}
                   onClick={() => setSelectedMonth(m)}
                   className={`w-full py-4 snap-center text-sm font-bold transition-all ${selectedMonth === m ? 'text-[var(--theme-primary)] text-lg scale-110' : 'text-[var(--theme-muted)] opacity-40'}`}
                 >

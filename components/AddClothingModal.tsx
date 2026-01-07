@@ -32,7 +32,7 @@ export const AddClothingModal: React.FC<AddClothingModalProps> = ({ onClose, onA
       name,
       category: category || '其他',
       color: color || '无色',
-      image,
+      image, // Storing as base64 string for now, Dexie handles this well in IndexedDB
       createdAt: Date.now()
     };
     onAdd(newItem);
